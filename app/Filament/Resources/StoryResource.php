@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\StoryResource\Pages;
 use App\Filament\Resources\StoryResource\RelationManagers;
+use App\Filament\Resources\StoryResource\RelationManagers\PhotosRelationManager;
 use App\Models\Story;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Forms\Components\RichEditor;
 class StoryResource extends Resource
 {
     protected static ?string $model = Story::class;
@@ -25,16 +27,22 @@ class StoryResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('category_id')
-                    ->relationship(name: 'category', titleAttribute: 'category_name'),
+                    ->relationship(name: 'category', titleAttribute: 'category_name')
+                    ->native(false),
 
                 Forms\Components\TextInput::make('story_name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Textarea::make('story_desc')
-                    ->required()
-                    ->autosize(),
+
+                RichEditor::make('story_desc')->required()->columnSpanFull()
+                ->disableToolbarButtons([
+                    'attachFiles',
+                    'codeBlock'
+                ]),
+
                 Forms\Components\DateTimePicker::make('story_date')
                     ->required(),
+
                 Forms\Components\TextInput::make('story_destination')
                     ->required()
                     ->maxLength(255),
@@ -94,7 +102,7 @@ class StoryResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            PhotosRelationManager::class
         ];
     }
 

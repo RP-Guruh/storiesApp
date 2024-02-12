@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PhotoResource\Pages;
 use App\Filament\Resources\PhotoResource\RelationManagers;
 use App\Models\Photo;
+use App\Models\Story;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\FileUpload;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Actions\ActionGroup;
 class PhotoResource extends Resource
 {
     protected static ?string $model = Photo::class;
@@ -27,7 +29,13 @@ class PhotoResource extends Resource
             ->schema([
                 Forms\Components\Select::make('story_id')
                     ->required()
-                    ->relationship(name:'story', titleAttribute: 'story_name'),
+                    ->relationship(name:'story', titleAttribute: 'story_name')
+                    ->native(false)
+                    ->preload()
+                    ->searchable()
+                    ->options(Story::whereNotIn('id', function ($query) {
+                        $query->select('story_id')->from('photos');
+                    })->get()->pluck('story_name', 'id')),
 
                 FileUpload::make('photo')
                     ->disk('public')
@@ -68,8 +76,13 @@ class PhotoResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\ForceDeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                ])->button()->label('Actions')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -11,5 +11,8 @@ use Auth;
 class CreatePhoto extends CreateRecord
 {
     protected static string $resource = PhotoResource::class;
-
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
