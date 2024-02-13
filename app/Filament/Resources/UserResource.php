@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -50,7 +52,8 @@ class UserResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('role.role_name')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ,
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
@@ -71,6 +74,9 @@ class UserResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
+                SelectFilter::make('role_id')
+                    ->relationship('role', 'id')
+                    ->attribute('role.role_name')
             ])
             ->actions([
                 ActionGroup::make([
@@ -113,6 +119,13 @@ class UserResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            UserResource\Widgets\UserOverview::class,
+        ];
     }
 
     public static function canAccess(): bool
