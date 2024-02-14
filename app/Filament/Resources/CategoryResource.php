@@ -12,7 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
@@ -26,6 +26,17 @@ class CategoryResource extends Resource
                 Forms\Components\TextInput::make('category_name')
                     ->required()
                     ->maxLength(255),
+
+                Forms\Components\FileUpload::make('thumbnail')
+                    ->disk('public')
+                    ->directory('thumbnail')
+                    ->visibility('private')
+                    ->getUploadedFileNameForStorageUsing(
+                        fn (TemporaryUploadedFile $file): string => (string) str($file->getClientOriginalName())
+                            ->prepend('custom-prefix-'),
+                    )
+                    ->columnSpanFull()
+                    ->imageEditor()
             ]);
     }
 
